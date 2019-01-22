@@ -1,0 +1,1 @@
+this file generates an menu separator for addScriptFolderToMenu.jsx

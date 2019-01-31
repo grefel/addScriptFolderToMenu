@@ -563,12 +563,12 @@ function installMenu() {
 		// log.info(scriptsArray.toSource());
 
 		// Install menu
-		if (px.position = "table") {
+		if (px.position == "table") {
 			var refMenuEntry = app.menus.item("$ID/Main").submenus.item("$ID/Table");
 			if (!refMenuEntry.isValid) refMenuEntry = app.menus.item("$ID/Main").submenus.item("Tabelle");
 			if (!refMenuEntry.isValid) refMenuEntry = app.menus.item("$ID/Main").submenus[5];
 		}
-		if (px.position = "help") {
+		if (px.position == "help") {
 			var refMenuEntry = app.menus.item("$ID/Main").submenus.item("$ID/Window");
 			if (!refMenuEntry.isValid) refMenuEntry = app.menus.item("$ID/Main").submenus.item("Fenster");
 			if (!refMenuEntry.isValid) refMenuEntry = app.menus.item("$ID/Main").submenus[7];

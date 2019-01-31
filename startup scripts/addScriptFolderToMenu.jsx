@@ -4,10 +4,12 @@
 
 var px = {
 	projectName: "AddScriptFolderToMenu",
-	version: "2019-01-20-v1.0",
+	version: "2019-01-31-v1.1",
 
 	scriptFolderMenuFolderName: "Scripts Menu",
 	scriptMenuName: localize({ en: "Scripts", de: "Skripte" }),
+
+	position:"table", // help
 
 	// Verwaltung
 	appendLog: true,
@@ -558,9 +560,16 @@ function main() {
 		// log.info(scriptsArray.toSource());
 
 		// Install menu
-		var refMenuEntry = app.menus.item("$ID/Main").submenus.item("$ID/Table");
-		if (!refMenuEntry.isValid) refMenuEntry = app.menus.item("$ID/Main").submenus.item("Tabelle");
-		if (!refMenuEntry.isValid) refMenuEntry = app.menus.item("$ID/Main").submenus[5];
+		if (px.position = "table") {
+			var refMenuEntry = app.menus.item("$ID/Main").submenus.item("$ID/Table");
+			if (!refMenuEntry.isValid) refMenuEntry = app.menus.item("$ID/Main").submenus.item("Tabelle");
+			if (!refMenuEntry.isValid) refMenuEntry = app.menus.item("$ID/Main").submenus[5];	
+		}
+		if (px.position = "help") {
+			var refMenuEntry = app.menus.item("$ID/Main").submenus.item("$ID/Window");
+			if (!refMenuEntry.isValid) refMenuEntry = app.menus.item("$ID/Main").submenus.item("Fenster");
+			if (!refMenuEntry.isValid) refMenuEntry = app.menus.item("$ID/Main").submenus[7];
+		}
 		if (!refMenuEntry.isValid) {
 			refMenuEntry = app.menus.item("$ID/Main").submenus[app.menus.item("$ID/Main").submenus.length - 2];
 			log.warn("could not find the  menu entry [Table] put the menu to the next to last position.");

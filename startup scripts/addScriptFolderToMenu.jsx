@@ -9,7 +9,7 @@ var px = {
 	scriptFolderMenuFolderName: "Scripts Menu",
 	scriptMenuName: localize({ en: "Scripts", de: "Skripte" }),
 
-	position:"table", // help
+	position: "table", // help
 
 	// Verwaltung
 	appendLog: true,
@@ -544,7 +544,10 @@ function main() {
 	// } else {
 	// 	fcFolder = File (Folder.appPackage + "/Presets/Find-Change Queries/" +folderType + "/" + $.locale);
 	// }
+	installMenu();
+}
 
+function installMenu() {
 	// User Folder 
 	var scriptFolderMenuPath = Folder(app.scriptPreferences.scriptsFolder + "/" + px.scriptFolderMenuFolderName);
 
@@ -563,7 +566,7 @@ function main() {
 		if (px.position = "table") {
 			var refMenuEntry = app.menus.item("$ID/Main").submenus.item("$ID/Table");
 			if (!refMenuEntry.isValid) refMenuEntry = app.menus.item("$ID/Main").submenus.item("Tabelle");
-			if (!refMenuEntry.isValid) refMenuEntry = app.menus.item("$ID/Main").submenus[5];	
+			if (!refMenuEntry.isValid) refMenuEntry = app.menus.item("$ID/Main").submenus[5];
 		}
 		if (px.position = "help") {
 			var refMenuEntry = app.menus.item("$ID/Main").submenus.item("$ID/Window");
@@ -589,6 +592,8 @@ function main() {
 	}
 }
 
+
+
 function analyseScriptsFolder(folder, scriptsArray) {
 	var children = folder.getFiles();
 	for (var i = 0; i < children.length; i++) {
@@ -597,7 +602,7 @@ function analyseScriptsFolder(folder, scriptsArray) {
 			if (child.name.match(/^lib|log$/)) {
 				log.info("Dropped special Folder [" + child.name + "]");
 			}
-			else if (child.getFiles("*.jsx").length > 0 || child.getFiles("*.jsxbin").length > 0 ) {
+			else if (child.getFiles("*.jsx").length > 0 || child.getFiles("*.jsxbin").length > 0) {
 				log.info("ADD Subfolder [" + child.name + "]");
 				scriptsArray.push(
 					{
@@ -668,6 +673,16 @@ function generataMenuEntries(scriptsArray, menuEntry) {
 			}
 			else {
 				log.info("Generate ScriptAction " + menuName);
+				try {
+					entry.file.open("r");
+					var firstLine = entry.file.readln();
+					if (firstLine.match(/^\/\/SCRIPTMENU:(.+)/)) {
+						menuName = firstLine.match(/\/\/SCRIPTMENU:(.+)/)[1];
+						log.info("SCRIPTMENU Tag wurde ausgewertet: " + menuName);
+					}
+				} catch (e) {
+					
+				}
 				var scriptAction = app.scriptMenuActions.add(menuName);
 				scriptAction.eventListeners.add("onInvoke", entry.file);
 				menuEntry.menuItems.add(scriptAction);
@@ -702,20 +717,30 @@ function showInfoAndUninstall() {
 	try {
 		var dialogWin = new Window("dialog", px.projectName + " v" + px.version);
 		dialogWin.alignChildren = "left";
-		dialogWin.stMsg = dialogWin.add("statictext", undefined, localize({ en: "This menu shows scripts from " + px.scriptFolderMenuFolderName, de: "Dieses Menü zeigt die Skripte aus dem Ordner " + px.scriptFolderMenuFolderName }));
-		dialogWin.stMsg.maximumSize.height = 300;
-		dialogWin.stMsg.minimumSize.width = 350;
-		dialogWin.stMsg2 = dialogWin.add("statictext", undefined, localize({ en: "by Gregor Fellenz", de: "Von Gregor Fellenz" }));
 
-		dialogWin.goToWebsite = dialogWin.add("button", undefined, "https://www.publishingX.de");
-		dialogWin.goToWebsite.onClick = function () {
+		dialogWin.gText = dialogWin.add("group");
+
+		dialogWin.gText.stMsg = dialogWin.gText.add("statictext", undefined, localize({ en: "This menu shows scripts from " + px.scriptFolderMenuFolderName, de: "Dieses Menü zeigt die Skripte aus dem Ordner " + px.scriptFolderMenuFolderName }));
+		dialogWin.gText.stMsg.maximumSize.height = 300;
+		dialogWin.gText.stMsg.minimumSize.width = 350;
+
+		dialogWin.gText.btOpenFolderLocation = dialogWin.gText.add("button", undefined, localize({ en: "Show folder", de: "Ordner anzeigen" }));
+		dialogWin.gText.btOpenFolderLocation.onClick = function () {
+			Folder(app.scriptPreferences.scriptsFolder + "/" + px.scriptFolderMenuFolderName).execute();
+			dialogWin.close(0);
+		}
+
+		dialogWin.gText2 = dialogWin.add("group");
+		dialogWin.gText2.stMsg2 = dialogWin.gText2.add("statictext", undefined, localize({ en: "by Gregor Fellenz", de: "Von Gregor Fellenz" }));
+		dialogWin.gText2.goToWebsite = dialogWin.gText2.add("button", undefined, "https://www.publishingX.de");
+		dialogWin.gText2.goToWebsite.onClick = function () {
 			openURL('https://www.publishingX.de');
 		}
 
 		dialogWin.gInfo = dialogWin.add("group");
 		// dialogWin.gInfo.preferredSize.width = 330;
-		dialogWin.gInfo.alignChildren = ['right', 'center'];
-		dialogWin.gInfo.margins = 0;
+		// dialogWin.gInfo.alignChildren = ['right', 'center'];
+		// dialogWin.gInfo.margins = 0;
 
 		dialogWin.gInfo.btShowLog = dialogWin.gInfo.add("button", undefined, localize({ en: "Show Log", de: "Log anzeigen" }));
 		dialogWin.gInfo.btShowLog.onClick = function () {
@@ -723,22 +748,20 @@ function showInfoAndUninstall() {
 			dialogWin.close(0);
 		}
 
-		dialogWin.gInfo.btOpenLocation = dialogWin.gInfo.add("button", undefined, localize({ en: "Show script file", de: "Skriptdatei anzeigen" }));
+		dialogWin.gInfo.btOpenLocation = dialogWin.gInfo.add("button", undefined, localize({ en: "Show startup script", de: "Startskriptdatei anzeigen" }));
 		dialogWin.gInfo.btOpenLocation.onClick = function () {
 			getScriptFolderPath().execute();
 			dialogWin.close(0);
 		}
 
-		
-		dialogWin.gInfo.btOpenFolderLocation = dialogWin.gInfo.add("button", undefined, localize({ en: "Show folder", de: "Ordner anzeigen" }));
-		dialogWin.gInfo.btOpenFolderLocation.onClick = function () {
-			Folder(app.scriptPreferences.scriptsFolder + "/" + px.scriptFolderMenuFolderName).execute();
-			dialogWin.close(0);
+		dialogWin.gInfo.btUpdate = dialogWin.gInfo.add("button", undefined, localize({ en: "Update Menu", de: "Menü aktualisieren" }));
+		dialogWin.gInfo.btUpdate.onClick = function () {
+			dialogWin.close(99);
 		}
 
 		dialogWin.gInfo.btUninstall = dialogWin.gInfo.add("button", undefined, localize({ en: "Remove Menu", de: "Menü entfernen" }));
 		dialogWin.gInfo.btUninstall.onClick = function () {
-			alert (localize({ en: "If you want to remove the menu permanently, you need to put the script in the folder [" + getScriptFolderPath() + "]", de:"Wenn Sie das Menü dauerhaft entfernen wollen, müssen Sie das Skript im Ordner [" + getScriptFolderPath() + "] löschen!"})) ;
+			alert(localize({ en: "If you want to remove the menu permanently, you need to put the script in the folder [" + getScriptFolderPath() + "]", de: "Wenn Sie das Menü dauerhaft entfernen wollen, müssen Sie das Skript im Ordner [" + getScriptFolderPath() + "] löschen!" }));
 			dialogWin.close(100);
 		}
 
@@ -751,9 +774,13 @@ function showInfoAndUninstall() {
 		if (res == 100) {
 			uninstallMenu();
 		}
+		if (res == 99) {
+			uninstallMenu();
+			installMenu();
+		}
 	}
 	catch (e) {
-		alert(e.line);
+		log.warn(e.msg + " Zeile:" + e.line);
 	}
 }
 
@@ -813,10 +840,13 @@ function pad(number, length, fill) {
 /** Get Filepath from current script  */
 function getScriptFolderPath() {
 	var skriptPath;
+	$.level = 2;
 	try {
+		$.level = 0;
 		skriptPath = app.activeScript.parent;
 	}
 	catch (e) {
+		$.level = 2;
 		/* We're running from the ESTK*/
 		skriptPath = File(e.fileName).parent;
 	}

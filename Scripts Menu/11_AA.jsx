@@ -1,1 +1,2 @@
-﻿alert (app.activeScript.name);
+﻿//SCRIPTMENU:A menu entry
+alert (app.activeScript.name);

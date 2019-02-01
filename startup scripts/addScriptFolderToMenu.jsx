@@ -681,7 +681,7 @@ function generataMenuEntries(scriptsArray, menuEntry) {
 						log.info("SCRIPTMENU Tag wurde ausgewertet: " + menuName);
 					}
 				} catch (e) {
-					
+					entry.file.close();
 				}
 				var scriptAction = app.scriptMenuActions.add(menuName);
 				scriptAction.eventListeners.add("onInvoke", entry.file);

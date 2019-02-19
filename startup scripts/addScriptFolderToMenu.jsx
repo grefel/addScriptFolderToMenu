@@ -10,6 +10,7 @@ var px = {
 	scriptMenuName: localize({ en: "Scripts", de: "Skripte" }),
 
 	position: "table", // help
+	ignoreRegex: /^lib|log|.git|.vscode$/, // if this regex matches, the file or folder is ignored
 
 	// Verwaltung
 	appendLog: true,
@@ -550,6 +551,9 @@ function main() {
 function installMenu() {
 	// User Folder 
 	var scriptFolderMenuPath = Folder(app.scriptPreferences.scriptsFolder + "/" + px.scriptFolderMenuFolderName);
+	if (scriptFolderMenuPath.alias) {
+		scriptFolderMenuPath = scriptFolderMenuPath.resolve();
+	}
 
 	if (scriptFolderMenuPath.exists) {
 		// analyse scripts in scriptfolder 
@@ -598,21 +602,32 @@ function analyseScriptsFolder(folder, scriptsArray) {
 	var children = folder.getFiles();
 	for (var i = 0; i < children.length; i++) {
 		var child = children[i];
+		if (child.alias) {
+			log.info("Löse Alias auf");
+			var aliasName = child.name;
+			child = child.resolve();
+			child.aliasName = aliasName;
+		}
+		if (child.hidden) {
+			log.info("Dropped hidden File or Folder [" + child.name + "]");
+			continue;
+		}
 		if (child instanceof Folder) {
-			if (child.name.match(/^lib|log$/)) {
+			if (child.name.match(px.ignoreRegex)) {
 				log.info("Dropped special Folder [" + child.name + "]");
 			}
-			else if (child.getFiles("*.jsx").length > 0 || child.getFiles("*.jsxbin").length > 0) {
+			else if (child.getFiles("*.jsx") == 0 && child.getFiles("*.jsxbin") == 0) {
+				log.info("Dropped empty Folder [" + child.name + "]");
+
+			}
+			else {
 				log.info("ADD Subfolder [" + child.name + "]");
 				scriptsArray.push(
 					{
-						name: child.displayName,
+						name: child.aliasName ? child.aliasName : child.displayName,
 						folder: analyseScriptsFolder(child, [])
 					}
 				);
-			}
-			else {
-				log.info("Dropped empty Folder [" + child.name + "]");
 			}
 		}
 		else if (child.name.match(/\.jsx(bin)?$/) || child.name.match(/^(\d\d_)?separator-*.txt$/)) {
@@ -625,6 +640,7 @@ function analyseScriptsFolder(folder, scriptsArray) {
 			);
 		}
 		else {
+			// $.bp(child.name.match(/press2id/))
 			log.info("Ignore [" + child.name + "]");
 		}
 	}
@@ -659,7 +675,7 @@ function generataMenuEntries(scriptsArray, menuEntry) {
 
 	for (var i = 0; i < scriptsArray.length; i++) {
 		var entry = scriptsArray[i];
-		var menuName = entry.name.replace(/^\d\d_/, "").replace(/\.jsx(bin)?$/, "");
+		var menuName = decodeURI(entry.name.replace(/^\d\d_/, "").replace(/\.jsx(bin)?$/, ""));
 		if (entry.hasOwnProperty("folder")) {
 			// submenu erstellen
 			log.info("Generate Submenu " + menuName);

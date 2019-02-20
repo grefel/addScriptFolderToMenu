@@ -552,7 +552,14 @@ function installMenu() {
 	// User Folder 
 	var scriptFolderMenuPath = Folder(app.scriptPreferences.scriptsFolder + "/" + px.scriptFolderMenuFolderName);
 	if (scriptFolderMenuPath.alias) {
-		scriptFolderMenuPath = scriptFolderMenuPath.resolve();
+		try {
+			scriptFolderMenuPath = scriptFolderMenuPath.resolve();
+		}
+		catch (e) {
+			log.warn(e);
+			log.warn("Could not resolve alias. Check your alias file [" + scriptFolderMenuPath + "]");
+			return;
+		}
 	}
 
 	if (scriptFolderMenuPath.exists) {

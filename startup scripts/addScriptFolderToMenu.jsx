@@ -1,6 +1,6 @@
 ﻿//DESCRIPTION:Adds a Menu Scripts to the main InDesign menu and display all scripts of a Folder. 
 //Contact: Gregor Fellenz - http://www.publishingx.de
-#targetengine scriptsFolderMenu
+//@targetengine scriptsFolderMenu
 
 var px = {
 	projectName: "AddScriptFolderToMenu",

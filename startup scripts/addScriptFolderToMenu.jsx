@@ -696,6 +696,7 @@ function generataMenuEntries(scriptsArray, menuEntry) {
 			}
 			else {
 				log.info("Generate ScriptAction " + menuName);
+				var runcontext = "";
 				try {
 					entry.file.open("r");
 					var firstLine = entry.file.readln();
@@ -703,12 +704,20 @@ function generataMenuEntries(scriptsArray, menuEntry) {
 						menuName = firstLine.match(/\/\/SCRIPTMENU:(.+)/)[1];
 						log.info("SCRIPTMENU Tag wurde ausgewertet: " + menuName);
 					}
+					var secondLine = entry.file.readln();
+					if (secondLine.match(/^\/\/RUNCONTEXT:(.+)/)) {
+						runcontext = secondLine.match(/\/\/RUNCONTEXT:(.+)/)[1];
+						log.info("RUNCONTEXT Tag wurde ausgewertet: " + runcontext);
+					}
 				} catch (e) {
 					entry.file.close();
 				}
 				var scriptAction = app.scriptMenuActions.add(menuName);
 				scriptAction.eventListeners.add("onInvoke", entry.file);
 				menuEntry.menuItems.add(scriptAction);
+				if (runcontext == "DOCUMENT") {
+					scriptAction.eventListeners.add("beforeDisplay", beforeDisplyHanderlActiveDocument);
+				}
 			}
 		}
 		else {
@@ -817,6 +826,16 @@ function openURL(url) {
 }
 
 /* Functions with fine grained tasks */
+function beforeDisplyHanderlActiveDocument() {
+	var scriptAction = myEvent.parent;
+	if (app.documents.length > 0 && app.layoutWindows.length > 0) {
+		scriptAction.enabled = true;
+	} else {
+		scriptAction.enabled = false;
+	}
+}
+
+
 /**  Init Log File and System */
 function initLog() {
 	var scriptFolderPath = getScriptFolderPath();

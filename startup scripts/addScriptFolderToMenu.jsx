@@ -623,9 +623,8 @@ function analyseScriptsFolder(folder, scriptsArray) {
 			if (child.name.match(px.ignoreRegex)) {
 				log.info("Dropped special Folder [" + child.name + "]");
 			}
-			else if (child.getFiles("*.jsx") == 0 && child.getFiles("*.jsxbin") == 0) {
+			else if (!checkForChildren(child)) {
 				log.info("Dropped empty Folder [" + child.name + "]");
-
 			}
 			else {
 				log.info("ADD Subfolder [" + child.name + "]");
@@ -678,6 +677,20 @@ function analyseScriptsFolder(folder, scriptsArray) {
 	return scriptsArray;
 }
 
+function checkForChildren(child) {
+	var children = child.getFiles();
+	for (i  = 0; i < children.length; i++) {
+		child = children[i];
+		if (child instanceof Folder && checkForChildren(child)) {
+			return true;
+		}
+		if (child.toString().match(/\.jsx(bin)?$/)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 function generataMenuEntries(scriptsArray, menuEntry) {
 
 	for (var i = 0; i < scriptsArray.length; i++) {
@@ -707,17 +720,18 @@ function generataMenuEntries(scriptsArray, menuEntry) {
 					var secondLine = entry.file.readln();
 					if (secondLine.match(/^\/\/RUNCONTEXT:(.+)/)) {
 						runcontext = secondLine.match(/\/\/RUNCONTEXT:(.+)/)[1];
-						log.info("RUNCONTEXT Tag wurde ausgewertet: " + runcontext);
+						runcontext.replace(/\s/g, "");
+						log.info("RUNCONTEXT Tag wurde ausgewertet: [" + runcontext + "]");
 					}
 				} catch (e) {
 					entry.file.close();
 				}
 				var scriptAction = app.scriptMenuActions.add(menuName);
 				scriptAction.eventListeners.add("onInvoke", entry.file);
-				menuEntry.menuItems.add(scriptAction);
 				if (runcontext == "DOCUMENT") {
 					scriptAction.eventListeners.add("beforeDisplay", beforeDisplyHanderlActiveDocument);
 				}
+				menuEntry.menuItems.add(scriptAction);
 			}
 		}
 		else {
@@ -826,8 +840,9 @@ function openURL(url) {
 }
 
 /* Functions with fine grained tasks */
-function beforeDisplyHanderlActiveDocument() {
-	var scriptAction = myEvent.parent;
+function beforeDisplyHanderlActiveDocument(event) {
+	var scriptAction = event.parent;
+
 	if (app.documents.length > 0 && app.layoutWindows.length > 0) {
 		scriptAction.enabled = true;
 	} else {

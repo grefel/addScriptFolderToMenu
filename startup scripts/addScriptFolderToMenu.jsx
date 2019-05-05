@@ -4,9 +4,11 @@
 
 var px = {
 	projectName: "AddScriptFolderToMenu",
-	version: "2019-01-31-v1.1",
+	version: "2019-05-05-v1.2",
 
-	scriptFolderMenuFolderName: "Scripts Menu",
+	scriptMenuFolderName: app.scriptPreferences.scriptsFolder + "/" + "Scripts Menu",
+	// scriptMenuFolderName:  "/Users/hp/github/addScriptFolderToMenu/Scripts Menu",
+	
 	scriptMenuName: localize({ en: "Scripts", de: "Skripte" }),
 
 	position: "table", // help
@@ -602,7 +604,7 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 			*/
 			getLogFile: function () {
 				return logFile;
-			}			
+			}
 		}
 	};
 })($.global, { toString: function () { return 'idsLog'; } });
@@ -639,24 +641,24 @@ function main() {
 
 function installMenu() {
 	// User Folder 
-	var scriptFolderMenuPath = Folder(app.scriptPreferences.scriptsFolder + "/" + px.scriptFolderMenuFolderName);
-	if (scriptFolderMenuPath.alias) {
+	var scriptMenuFolderPath = Folder(px.scriptMenuFolderName);
+	if (scriptMenuFolderPath.alias) {
 		try {
-			scriptFolderMenuPath = scriptFolderMenuPath.resolve();
+			scriptMenuFolderPath = scriptMenuFolderPath.resolve();
 		}
 		catch (e) {
 			log.warn(e);
-			log.warn("Could not resolve alias. Check your alias file [" + scriptFolderMenuPath + "]");
+			log.warn("Could not resolve alias. Check your alias file [" + scriptMenuFolderPath + "]");
 			return;
 		}
 	}
 
-	if (scriptFolderMenuPath.exists) {
+	if (scriptMenuFolderPath.exists) {
 		// analyse scripts in scriptfolder 
 		var scriptsArray = [];
-		scriptsArray = analyseScriptsFolder(scriptFolderMenuPath, scriptsArray);
+		scriptsArray = analyseScriptsFolder(scriptMenuFolderPath, scriptsArray);
 		if (scriptsArray.length == 0) {
-			log.warn("No script files found in folder [" + scriptFolderMenuPath + "]");
+			log.warn("No script files found in folder [" + scriptMenuFolderPath + "]");
 			return;
 		}
 
@@ -688,7 +690,7 @@ function installMenu() {
 
 	}
 	else {
-		log.info("Could not find a Folder [" + px.scriptFolderMenuFolderName + "] in [" + app.scriptPreferences.scriptsFolder + "]");
+		log.info("Could not find the folder [" + px.scriptMenuFolderName + "]");
 	}
 }
 
@@ -768,7 +770,7 @@ function analyseScriptsFolder(folder, scriptsArray) {
 
 function checkForChildren(child) {
 	var children = child.getFiles();
-	for (i  = 0; i < children.length; i++) {
+	for (i = 0; i < children.length; i++) {
 		child = children[i];
 		if (child instanceof Folder && checkForChildren(child)) {
 			return true;
@@ -855,13 +857,13 @@ function showInfoAndUninstall() {
 
 		dialogWin.gText = dialogWin.add("group");
 
-		dialogWin.gText.stMsg = dialogWin.gText.add("statictext", undefined, localize({ en: "This menu shows scripts from " + px.scriptFolderMenuFolderName, de: "Dieses Menü zeigt die Skripte aus dem Ordner " + px.scriptFolderMenuFolderName }));
+		dialogWin.gText.stMsg = dialogWin.gText.add("statictext", undefined, localize({ en: "This menu shows scripts from " + px.scriptMenuFolderName, de: "Dieses Menü zeigt die Skripte aus dem Ordner " + px.scriptMenuFolderName }));
 		dialogWin.gText.stMsg.maximumSize.height = 300;
 		dialogWin.gText.stMsg.minimumSize.width = 350;
 
 		dialogWin.gText.btOpenFolderLocation = dialogWin.gText.add("button", undefined, localize({ en: "Show folder", de: "Ordner anzeigen" }));
 		dialogWin.gText.btOpenFolderLocation.onClick = function () {
-			Folder(app.scriptPreferences.scriptsFolder + "/" + px.scriptFolderMenuFolderName).execute();
+			Folder(px.scriptMenuFolderName).execute();
 			dialogWin.close(0);
 		}
 

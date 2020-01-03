@@ -125,3 +125,6 @@ Um das Menü zu strukturieren, kann man Separatoren einfügen. Das sind dünne g
 Diese erzeugt man im ***addScriptFolderToMenu***-Menü über Textdateien, die diesen Dateinamen haben: `separator-----.txt`.
 Natürlich kann man auch diese Dateien über vorangestellte Nummern im Menü organisieren.
 Also zum Beispiel `80_separator-----.txt`.
+
+#### Credits
+* German documentation by Christoph Steffens

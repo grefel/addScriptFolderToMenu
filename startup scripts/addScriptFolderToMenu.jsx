@@ -4,11 +4,11 @@
 
 var px = {
 	projectName: "AddScriptFolderToMenu",
-	version: "2019-05-05-v1.2",
+	version: "2022-06-01-v1.21",
 
 	scriptMenuFolderName: app.scriptPreferences.scriptsFolder + "/" + "Scripts Menu",
 	// scriptMenuFolderName:  "/Users/hp/github/addScriptFolderToMenu/Scripts Menu",
-	
+
 	scriptMenuName: localize({ en: "Scripts", de: "Skripte" }),
 
 	position: "window", // table|window
@@ -25,14 +25,14 @@ if (app.extractLabel("px:debugID") == "Jp07qcLlW3aDHuCoNpBK_Gregor-") {
 
 /****************
 * Logging Class 
-* @Version: 1.19
-* @Date: 2020-12-03
+* @Version: 1.23
+* @Date: 2022-05-17
 * @Author: Gregor Fellenz, http://www.publishingx.de
-* Acknowledgments: Library design pattern from Marc Aturet https://forums.adobe.com/thread/1111415
+* Acknowledgments: Library design pattern from Marc Autret https://forums.adobe.com/thread/1111415
 
 * Usage: 
 
-log = idsLog.getLogger("~/Desktop/testLog.txt", "INFO");
+log = idsLog.getLogger(File("~/Desktop/testLog.txt"), "INFO");
 log.warnAlert("Warn message");
 
 */
@@ -72,7 +72,12 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 	INNER.getPageNameFromObject = function (object) {
 		var pagePositionMessage = "";
 		if (object != null) {
-			object = object.getElements()[0]; // Get Object from Superclass like PageItem
+			try {
+				object = object.getElements()[0]; // Get Object from Superclass like PageItem
+			}
+			catch (e) {
+				return localize({ en: "Could not detect page", de: "Konnte Seite nicht ermitteln" }) + " > " + e.toString();
+			}
 			if (object.hasOwnProperty("sourceText")) {
 				object = object.sourceText;
 			}
@@ -182,7 +187,7 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 		}
 	};
 	INNER.showMessages = function (title, msgArray, type) {
-		if (!INNER.disableAlerts && msgArray.length > 0) {
+		if (!INNER.disableAlerts && msgArray.length > 0 && !app.hasOwnProperty("serverHostName")) {
 			var callingScriptVersion = "    ";
 			if ($.global.hasOwnProperty("px") && $.global.px.hasOwnProperty("projectName")) {
 				callingScriptVersion += px.projectName;
@@ -226,12 +231,16 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 					dialogWin.close();
 				}
 			}
-			dialogWin.gControl.add("button", undefined, "Ok", { name: "ok" });
+			var button = dialogWin.gControl.add("button", undefined, "Ok", { name: "ok" });
+			button.active = true;
 			dialogWin.show();
 		}
 	};
 	INNER.confirmMessages = function (title, msgArray, type) {
-		if (!INNER.disableAlerts && msgArray.length > 0) {
+		if (app.hasOwnProperty("serverHostName")) {
+			throw Error("Cannot confirm on server!");
+		}
+		else if (!INNER.disableAlerts && msgArray.length > 0) {
 			var callingScriptVersion = "    ";
 			// if ($.global.hasOwnProperty("px") && $.global.px.hasOwnProperty("projectName")) {
 			// 	callingScriptVersion += px.projectName;
@@ -264,15 +273,14 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 				}
 			}
 			dialogWin.gControl.add("button", undefined, localize({ en: "Cancel", de: "Abbrechen" }), { name: "cancel" });
-			dialogWin.gControl.add("button", undefined, "Ok", { name: "ok" });
+			var button = dialogWin.gControl.add("button", undefined, "Ok", { name: "ok" });
+			button.active = true;
 			return dialogWin.show();
 		}
 	};
-
 	INNER.confirm = function (message, noAsDefault, title) {
 		return confirm(message, noAsDefault, title);
-	}
-
+	};
 	INNER.getFileFilter = function (fileFilter) {
 		if (fileFilter == undefined || File.fs == "Windows") {
 			return fileFilter;
@@ -291,7 +299,6 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 			}
 		}
 	};
-
 	INNER.msToTime = function (microseconds) {
 		var milliseconds = microseconds / 1000;
 		var ms = parseInt((milliseconds % 1000) / 100)
@@ -314,15 +321,15 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 		return h + ':' + m + ':' + s + "." + ms;
 	};
 	/****************
-    * API 
-    */
+	* API 
+	*/
 
-    /**
-    * Returns a log Object
-    * @logFile {File|String} Path to logfile as File Object or String.
-    * @logLevel {String} Log Threshold  "OFF", "ERROR", "WARN", "INFO", "DEBUG"
-    * @disableAlerts {Boolean} Show alerts
-    */
+	/**
+	* Returns a log Object
+	* @logFile {File|String} Path to logfile as File Object or String.
+	* @logLevel {String} Log Threshold  "OFF", "ERROR", "WARN", "INFO", "DEBUG"
+	* @disableAlerts {Boolean} Show alerts
+	*/
 	SELF.getLogger = function (logFile, logLevel, disableAlerts) {
 		if (logFile == undefined) {
 			throw Error("Cannot instantiate Log without Logfile. Please provide a File");
@@ -407,7 +414,7 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 					INNER.writeLog(message, "INFO", logFile);
 					counter.info++;
 					messages.info.push(message);
-					messages.all.push(message);
+					messages.all.push("INFO: " + message);
 				}
 			},
 			/**
@@ -421,7 +428,7 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 					INNER.writeLog(message, "INFO", logFile);
 					counter.info++;
 					messages.info.push(message);
-					messages.all.push(message);
+					messages.all.push("INFO: " + message);
 					INNER.showAlert("[INFO]", message, localize({ en: "informations", de: " der Informationen" }));
 				}
 			},
@@ -438,12 +445,12 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 					INNER.writeLog(message, "INFO", logFile);
 					counter.info++;
 					messages.info.push(message);
-					messages.all.push(message);
+					messages.all.push("INFO: " + message);
 				}
 				if (INNER.logLevel <= 2) {
 					INNER.writeLog(message, "INFO", logFile);
 					messages.warn.push(message);
-					messages.all.push(message);
+					messages.all.push("INFO: " + message);
 				}
 			},
 			/**
@@ -460,7 +467,7 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 					INNER.writeLog(message, "WARN", logFile);
 					counter.warn++;
 					messages.warn.push(message);
-					messages.all.push(message);
+					messages.all.push("WARN: " + message);
 				}
 			},
 			/**
@@ -474,7 +481,7 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 					INNER.writeLog(message, "WARN", logFile);
 					counter.warn++;
 					messages.warn.push(message);
-					messages.all.push(message);
+					messages.all.push("WARN: " + message);
 					INNER.showAlert("[WARN]", message + "\n\nPrüfen Sie auch das Logfile:\n" + logFile, localize({ en: "warnings", de: "der Warnungen" }));
 				}
 			},
@@ -489,7 +496,7 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 					INNER.writeLog(message, "ERROR", logFile);
 					counter.error++;
 					messages.error.push(message);
-					messages.all.push(message);
+					messages.all.push("ERROR: " + message);
 				}
 			},
 
@@ -573,8 +580,9 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 			/**
 			* Returns all warnings
 			*/
-			getWarnings: function () {
-				return messages.warn.join("\n");
+			getWarnings: function (separator) {
+				if (!separator) separator = "\n";
+				return messages.warn.join(separator);
 			},
 			/**
 			* Shows all messages
@@ -591,8 +599,9 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 			/**
 			* Returns all infos
 			*/
-			getInfos: function () {
-				return messages.info.join("\n");
+			getInfos: function (separator) {
+				if (!separator) separator = "\n";
+				return messages.info.join(separator);
 			},
 			/**
 			* Shows all errors
@@ -603,16 +612,22 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 			/**
 			* Returns all errors
 			*/
-			getErrors: function () {
-				return messages.error.join("\n");
+			getErrors: function (separator) {
+				if (!separator) separator = "\n";
+				return messages.error.join(separator);
 			},
+
+			getMessages: function (separator) {
+				if (!separator) separator = "\n";
+				return messages.all.join(separator);
+			},
+
 			/**
 			* Returns the counter Object
 			*/
 			getCounters: function () {
 				return counter;
 			},
-
 
 			/**
 			* Set silent Mode
@@ -665,7 +680,7 @@ $.global.hasOwnProperty('idsLog') || (function (HOST, SELF) {
 				INNER.writeLog(message, "INFO", logFile);
 				counter.info++;
 				messages.info.push(message);
-				messages.all.push(message);
+				messages.all.push("INFO: " + message);
 				if (typeof px != "undefined" && px.hasOwnProperty("debug") && px.debug) {
 					$.writeln(message);
 				}
@@ -731,9 +746,11 @@ function main() {
 function installMenu() {
 	// User Folder 
 	var scriptMenuFolderPath = Folder(px.scriptMenuFolderName);
+	log.info("Expecting Script Menu scripts in [" + px.scriptMenuFolderName + "]");
 	if (scriptMenuFolderPath.alias) {
 		try {
 			scriptMenuFolderPath = scriptMenuFolderPath.resolve();
+			log.info("Resolved alias to Script Menu scripts to [" + px.scriptMenuFolderName + "]");
 		}
 		catch (e) {
 			log.warn(e);

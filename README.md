@@ -3,8 +3,10 @@ Add  scripts from a folder to the InDesign menu!
 
 Very Short Installation Note: 
 
-Put the folder ***startup scripts*** and the included script ***addScriptFolderToMenu.jsx*** into the ***Scripts*** folder of your InDesign. 
-Put the Scripts for the Menu into a new folder ***Scripts Menu*** in  ***Scripts/Scripts Panel***
+1. Lcoate the `Scripts` folder of your InDesign https://help.redokun.com/article/38-install-an-indesign-script
+1. Put the folder `startup scripts` and the included script `addScriptFolderToMenu.jsx` into the `Scripts` folder of your InDesign. 
+1. Put the Scripts for the Menu into a new folder `Scripts Menu` in  `Scripts/Scripts Panel`
+
 
 No english documentation yet, sorry. Try the german one:
 
